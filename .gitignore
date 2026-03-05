@@ -1,0 +1,37 @@
+# Julia coverage/allocation artifacts
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+
+# Julia package build/deps artifacts
+deps/deps.jl
+deps/build.log
+deps/downloads/
+deps/usr/
+deps/src/
+
+# Documenter build output
+docs/build/
+docs/site/
+
+# Julia environment local state
+Manifest*.toml
+Manifest.toml
+manifest.toml
+LocalPreferences.toml
+JuliaLocalPreferences.toml
+
+# Project-generated data
+/run/
+/out/
+
+# Python cache artifacts (scripts/)
+__pycache__/
+*.py[cod]
+
+# Editor/OS clutter
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
