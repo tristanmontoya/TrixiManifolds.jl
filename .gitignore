@@ -24,6 +24,8 @@ JuliaLocalPreferences.toml
 # Project-generated data
 /run/
 /out/
+examples/output/advection_torus/
+examples/output/advection_cubed_sphere/
 
 # Python cache artifacts (scripts/)
 __pycache__/

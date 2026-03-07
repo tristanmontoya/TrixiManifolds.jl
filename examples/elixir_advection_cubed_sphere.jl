@@ -12,7 +12,7 @@ using LinearAlgebra: cross
 # Sphere geometry and mesh resolution
 const sphere_radius = 1.0
 const cells_per_face_dim = 8
-const output_directory = "out/advection_cubed_sphere"
+const output_directory = normpath(@__DIR__, "output", "advection_cubed_sphere")
 const rotation_period = 1.0
 const num_revolutions = 4
 const final_time = num_revolutions * rotation_period

@@ -39,54 +39,43 @@ These examples are configured for `T = 4` with output interval `0.02`. They alre
 
 ```julia
 julia> using Trixi2Vtk
-julia> trixi2vtk("out/advection_torus/solution_*.h5", output_directory="out/advection_torus")
-julia> trixi2vtk("out/advection_cubed_sphere/solution_*.h5", output_directory="out/advection_cubed_sphere")
+julia> trixi2vtk("../examples/output/advection_torus/solution_*.h5",
+                 output_directory="../examples/output/advection_torus")
+julia> trixi2vtk("../examples/output/advection_cubed_sphere/solution_*.h5",
+                 output_directory="../examples/output/advection_cubed_sphere")
 ```
 
-## Headless animations (no GUI)
+## Animations
 Use the script in `scripts/` to render animations directly from terminal. It auto-reexecutes via `pvbatch` when run with normal Python.
 
 Prerequisites:
 - Python 3
 - ParaView installed with `pvbatch` available (either on `PATH` or via `PVBATCH=/path/to/pvbatch`)
 - `ffmpeg` on `PATH` for movie output (`.mp4`, `.avi`, etc.); PNG plot output does not require `ffmpeg`
-- VTU files in `out/` (for example from `trixi2vtk("out/solution_*.h5", output_directory="out/")`)
+- VTU files in `examples/output/` (for example from `trixi2vtk("examples/output/solution_*.h5", output_directory="examples/output/")`)
 
 ```bash
 python scripts/render_paraview_animation.py \
-  --input "out/advection_torus/solution_*.vtu" \
-  --output out/advection_torus/animation.mp4 \
+  --input "examples/output/advection_torus/solution_*.vtu" \
+  --output examples/output/advection_torus/animation.mp4 \
   --field h
 ```
 
 ```bash
 python scripts/render_paraview_animation.py \
-  --input "out/advection_cubed_sphere/solution_*.vtu" \
-  --output out/advection_cubed_sphere/animation.mp4 \
+  --input "examples/output/advection_cubed_sphere/solution_*.vtu" \
+  --output examples/output/advection_cubed_sphere/animation.mp4 \
   --field h \
   --camera isometric
 ```
 
-## Headless ParaView plots (PNG)
-To render a single still plot, set `--start-frame` and `--end-frame` to the same index and use a quoted wildcard output like `plot_*.png`. The script normalizes this to ParaView's filename seed and writes files matching `plot_*.png` (for example, `plot_.0100.png`).
+To output `.png` files, simply replace `animation.mp4` with a pattern like `plot_*.png`, where `*` will be replaced with the frame number.
 
-```bash
-python scripts/render_paraview_animation.py \
-  --input "out/advection_torus/solution_*.vtu" \
-  --output "out/advection_torus/plot_*.png" \
-  --field h \
-  --start-frame 100 \
-  --end-frame 100
-```
+### Example animations
+- Torus (`T = 4`, 20 fps): [examples/output/torus_plot_full_t4_20fps.mp4](examples/output/torus_plot_full_t4_20fps.mp4)
+- Cubed sphere (`T = 4`, 20 fps): [examples/output/sphere_plot_full_t4_20fps.mp4](examples/output/sphere_plot_full_t4_20fps.mp4)
 
-```bash
-python scripts/render_paraview_animation.py \
-  --input "out/advection_cubed_sphere/solution_*.vtu" \
-  --output "out/advection_cubed_sphere/plot_*.png" \
-  --field h \
-  --start-frame 100 \
-  --end-frame 100
-```
+
 
 ## License
 This code is released under the [MIT license](https://opensource.org/license/mit).

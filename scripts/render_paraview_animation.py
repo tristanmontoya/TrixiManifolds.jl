@@ -4,13 +4,13 @@ Render a ParaView animation from VTU data without opening the GUI.
 
 Usage examples:
   python scripts/render_paraview_animation.py \
-    --input "out/advection_torus/solution_*.vtu" \
-    --output out/advection_torus/animation.mp4 \
+    --input "examples/output/advection_torus/solution_*.vtu" \
+    --output examples/output/advection_torus/animation.mp4 \
     --field h
 
   python scripts/render_paraview_animation.py \
-    --input "out/advection_cubed_sphere/solution_*.vtu" \
-    --output out/advection_cubed_sphere/frames.png \
+    --input "examples/output/advection_cubed_sphere/solution_*.vtu" \
+    --output "examples/output/advection_cubed_sphere/plot_*.png" \
     --field h
 """
 
