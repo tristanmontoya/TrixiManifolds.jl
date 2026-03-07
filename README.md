@@ -6,6 +6,11 @@
 `TrixiManifolds.jl` provides extensions for solving PDEs on curved manifolds using the [Trixi.jl](https://github.com/trixi-framework/Trixi.jl) ecosystem.
 
 ## Included features
+<p align="center">
+  <img src="examples/output/torus_plot_full_t4_20fps.gif" alt="Torus advection animation" width="49%" />
+  <img src="examples/output/sphere_plot_full_t4_20fps.gif" alt="Cubed-sphere advection animation" width="49%" />
+</p>
+
 - Torus manifold support: custom periodic torus mesh construction and covariant metric-term initialization, demonstrated in `examples/elixir_advection_torus.jl`.
 - Sphere support included from [TrixiAtmo.jl](https://github.com/trixi-framework/TrixiAtmo.jl): covariant advection on a cubed sphere demonstrated in `examples/elixir_advection_cubed_sphere.jl`.
 
