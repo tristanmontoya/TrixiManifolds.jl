@@ -73,7 +73,7 @@ function P4estMeshTorus2D(trees_per_dimension::NTuple{2, <:Integer},
                                             ntuple(_ -> length(nodes), 2)...,
                                             n_trees)
 
-    # Map (element id, local (ξ₁, ξ₂)) -> (θ, φ) -> (x, y, z).
+    # Map (element id, local (ξ₁, ξ₂)) → (θ, φ) → (x, y, z)
     calc_torus_tree_node_coordinates!(tree_node_coordinates, nodes, trees_per_dimension,
                                       major_radius, minor_radius)
 
@@ -89,7 +89,7 @@ function P4estMeshTorus2D(trees_per_dimension::NTuple{2, <:Integer},
 end
 
 # Calculate torus coordinates for each node based on element index and local reference
-# coordinates.
+# coordinates
 function calc_torus_tree_node_coordinates!(tree_node_coordinates::Array{RealT, 4},
                                            nodes,
                                            trees_per_dimension::NTuple{2, <:Integer},
@@ -98,6 +98,7 @@ function calc_torus_tree_node_coordinates!(tree_node_coordinates::Array{RealT, 4
     trees_per_major_angle, trees_per_minor_angle = trees_per_dimension
     linear_indices = LinearIndices(trees_per_dimension)
 
+    # Type conversions for constants used in the mapping formulas
     two_pi = convert(RealT, 2pi)
     half = convert(RealT, 0.5)
     one_rt = one(RealT)
@@ -109,6 +110,8 @@ function calc_torus_tree_node_coordinates!(tree_node_coordinates::Array{RealT, 4
             xi_1 = nodes[i]
             xi_2 = nodes[j]
 
+            # Map to global torus angles on this element, which are affine in local
+            # reference coordinates
             theta = two_pi *
                     ((k_theta - 1) + (xi_1 + one_rt) * half) /
                     trees_per_major_angle
@@ -116,6 +119,7 @@ function calc_torus_tree_node_coordinates!(tree_node_coordinates::Array{RealT, 4
                   ((k_phi - 1) + (xi_2 + one_rt) * half) /
                   trees_per_minor_angle
 
+            # Map from torus angles to Cartesian coordinates for this node/element
             tree_node_coordinates[:, i, j, tree_id] .= torus2cartesian(theta, phi,
                                                                        major_radius,
                                                                        minor_radius)
@@ -144,9 +148,9 @@ where `R = major_radius` and `r = minor_radius`.
     s_phi, c_phi = sincos(phi)
 
     # Parametrization with symmetry axis along +z:
-    # x = (R + r cos(phi)) cos(theta)
-    # y = (R + r cos(phi)) sin(theta)
-    # z = r sin(phi)
+    # x = (R + r cos(φ)) cos(θ)
+    # y = (R + r cos(φ)) sin(θ)
+    # z = r sin(φ)
     ring_radius = major_radius + minor_radius * c_phi
     x = ring_radius * c_theta
     y = ring_radius * s_theta

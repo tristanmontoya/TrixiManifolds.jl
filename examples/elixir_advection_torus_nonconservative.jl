@@ -1,9 +1,10 @@
 ###############################################################################
-# Torus advection test (covariant form)
+# Torus advection test (covariant nonconservative form)
 #
 # This elixir constructs a periodic torus mesh, computes torus covariant metric
-# terms, runs covariant linear advection in conservative form with a
-# Gaussian scalar bump and a tangential velocity field, and converts output to VTK.
+# terms, runs covariant linear advection in nonconservative form with a Gaussian
+# scalar bump and a tangential velocity field, and converts output to VTK.
+# Note: this example is unstable and is intended for demonstration purposes only.
 ###############################################################################
 using OrdinaryDiffEq
 using Trixi, TrixiAtmo, Trixi2Vtk
@@ -14,7 +15,7 @@ const major_radius = 1.0
 const minor_radius = 0.5 * major_radius
 const cells_per_major_angle = 32
 const cells_per_minor_angle = 12
-const output_directory = normpath(@__DIR__, "output", "advection_torus")
+const output_directory = normpath(@__DIR__, "output", "advection_torus_nonconservative")
 const rotation_period = 1.0
 const num_revolutions = 4
 const final_time = num_revolutions * rotation_period
@@ -51,19 +52,34 @@ end
     return SMatrix{1, 1}(velocity_contravariant[orientation])
 end
 
+# Conservative coefficients are zero in this nonconservative example
+@inline function conservative_coefficient_matrix(x, aux_vars, orientation::Integer,
+                                                 equations)
+    return SMatrix{1, 1}(zero(eltype(aux_vars)))
+end
+
+# Nonconservative coefficients carry the advection operator
+@inline function nonconservative_coefficient_matrix(x, aux_vars, orientation::Integer,
+                                                    equations)
+    return advection_coefficient_matrix(x, aux_vars, orientation, equations)
+end
+
 # Clear stale output files from previous runs to avoid mixing datasets.
 if isdir(output_directory)
     rm(output_directory; recursive = true, force = true)
 end
 mkpath(output_directory)
 
-# Covariant 1x1 linear system in conservative form with 1/J ∂_j(J A^j u)
-equations = CovariantLinearSystem2D(1, advection_coefficient_matrix,
+# Covariant 1x1 linear system in nonconservative form with B^j ∂_j u
+equations = CovariantLinearSystem2D(1, conservative_coefficient_matrix,
+                                    nonconservative_coefficient_matrix,
                                     global_coordinate_system = GlobalCartesianCoordinates())
 
-# DGSEM solver
-solver = DGSEM(polydeg = 3, surface_flux = flux_lax_friedrichs,
-               volume_integral = VolumeIntegralWeakForm())
+# DGSEM solver with nonconservative surface and volume terms
+volume_flux = (flux_central, flux_nonconservative)
+surface_flux = (flux_lax_friedrichs, flux_nonconservative)
+solver = DGSEM(polydeg = 3, surface_flux = surface_flux,
+               volume_integral = VolumeIntegralFluxDifferencing(volume_flux))
 
 # Create periodic torus mesh in 3D
 mesh = P4estMeshTorus2D(cells_per_major_angle, cells_per_minor_angle,

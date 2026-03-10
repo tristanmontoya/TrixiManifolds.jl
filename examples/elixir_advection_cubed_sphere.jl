@@ -8,6 +8,7 @@
 using OrdinaryDiffEq
 using Trixi, TrixiAtmo, Trixi2Vtk
 using LinearAlgebra: cross
+using TrixiManifolds
 
 # Sphere geometry and mesh resolution
 const sphere_radius = 1.0
@@ -25,10 +26,10 @@ const gaussian_height = 1.0
 const gaussian_width = 5.0
 const center_longitude_0 = pi / 2
 const center_latitude_0 = 0.0
+const rotation_axis = SVector(-cos(rotation_axis_tilt), 0.0, sin(rotation_axis_tilt))
 
+# Initial condition for scalar Gaussian bump in global Cartesian coordinates
 @inline function initial_condition_transport(x, t, equations)
-    rotation_axis = SVector(-cos(rotation_axis_tilt), 0.0, sin(rotation_axis_tilt))
-
     radius = sqrt(x[1]^2 + x[2]^2 + x[3]^2)
     x_center_0 = SVector(radius * cos(center_latitude_0) * cos(center_longitude_0),
                          radius * cos(center_latitude_0) * sin(center_longitude_0),
@@ -45,8 +46,19 @@ const center_latitude_0 = 0.0
     dx3 = x[3] - x_center[3]
     h = gaussian_height * exp(-gaussian_width * (dx1^2 + dx2^2 + dx3^2) / radius^2)
 
-    v1, v2, v3 = angular_speed * cross(rotation_axis, x)
-    return TrixiAtmo.cartesian2global(SVector(h, v1, v2, v3), x, equations)
+    return SVector(h)
+end
+
+# Global Cartesian solid-body velocity on the sphere
+@inline function velocity_global_cartesian(x)
+    return angular_speed * cross(rotation_axis, x)
+end
+
+# Scalar advection coefficients A^1 and A^2 in local contravariant coordinates
+@inline function advection_coefficient_matrix(x, aux_vars, orientation::Integer, equations)
+    velocity_contravariant = TrixiAtmo.basis_contravariant(aux_vars, equations) *
+                             velocity_global_cartesian(x)
+    return SMatrix{1, 1}(velocity_contravariant[orientation])
 end
 
 # Clear stale output files from previous runs to avoid mixing datasets.
@@ -55,8 +67,9 @@ if isdir(output_directory)
 end
 mkpath(output_directory)
 
-# Covariant advection equations with global Cartesian coordinates
-equations = CovariantLinearAdvectionEquation2D(global_coordinate_system = GlobalCartesianCoordinates())
+# Covariant 1x1 linear system for scalar advection in global Cartesian coordinates
+equations = CovariantLinearSystem2D(1, advection_coefficient_matrix,
+                                    global_coordinate_system = GlobalCartesianCoordinates())
 
 # DGSEM solver
 solver = DGSEM(polydeg = 3, surface_flux = flux_lax_friedrichs,
@@ -67,7 +80,7 @@ mesh = P4estMeshCubedSphere2D(cells_per_face_dim, sphere_radius,
                               polydeg = Trixi.polydeg(solver),
                               element_local_mapping = true)
 
-# Transform initial condition to covariant velocity components
+# Transform initial condition to the internal conservative variables
 initial_condition_transformed = transform_initial_condition(initial_condition_transport,
                                                             equations)
 
@@ -92,5 +105,4 @@ sol = solve(ode, CarpenterKennedy2N54(williamson_condition = false),
             dt = 1.0e-3, save_everystep = false, callback = callbacks)
 
 # Convert to VTU for visualization
-trixi2vtk(output_directory * "/solution_*.h5",
-          output_directory = output_directory)
+trixi2vtk(output_directory * "/solution_*.h5", output_directory = output_directory)
