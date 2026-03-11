@@ -29,7 +29,7 @@ const center_latitude_0 = 0.0
 const rotation_axis = SVector(-cos(rotation_axis_tilt), 0.0, sin(rotation_axis_tilt))
 
 # Initial condition for scalar Gaussian bump in global Cartesian coordinates
-@inline function initial_condition_transport(x, t, equations)
+@inline function initial_condition_transport(x, t, aux_vars, equations)
     radius = sqrt(x[1]^2 + x[2]^2 + x[3]^2)
     x_center_0 = SVector(radius * cos(center_latitude_0) * cos(center_longitude_0),
                          radius * cos(center_latitude_0) * sin(center_longitude_0),
@@ -80,12 +80,8 @@ mesh = P4estMeshCubedSphere2D(cells_per_face_dim, sphere_radius,
                               polydeg = Trixi.polydeg(solver),
                               element_local_mapping = true)
 
-# Transform initial condition to the internal conservative variables
-initial_condition_transformed = transform_initial_condition(initial_condition_transport,
-                                                            equations)
-
 # Set up semidiscretization and run window
-semi = SemidiscretizationHyperbolic(mesh, equations, initial_condition_transformed, solver,
+semi = SemidiscretizationHyperbolic(mesh, equations, initial_condition_transport, solver,
                                     boundary_conditions = boundary_condition_periodic)
 ode = semidiscretize(semi, (0.0, final_time))
 
