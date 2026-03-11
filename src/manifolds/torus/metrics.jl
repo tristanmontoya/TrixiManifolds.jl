@@ -56,7 +56,8 @@ function calc_torus_element_map_parameters(mesh::P4estMesh{2, 3},
     dtheta_dxi1 = Vector{RealT}(undef, nelements)
     dphi_dxi2 = Vector{RealT}(undef, nelements)
 
-    n_trees_expected = metric_terms.trees_per_major_angle * metric_terms.trees_per_minor_angle
+    n_trees_expected = metric_terms.trees_per_major_angle *
+                       metric_terms.trees_per_minor_angle
     @assert Trixi.ntrees(mesh) == n_trees_expected
 
     two_pi = convert(RealT, 2pi)
@@ -115,18 +116,16 @@ function TrixiAtmo.init_auxiliary_node_variables!(auxiliary_variables,
     @assert major_radius > zero(aux_type)
     @assert minor_radius > zero(aux_type)
 
-    theta_origin, phi_origin, dtheta_dxi1, dphi_dxi2 = calc_torus_element_map_parameters(mesh,
-                                                                                           metric_terms,
-                                                                                           aux_type)
+    theta_origin, phi_origin, dtheta_dxi1,
+    dphi_dxi2 = calc_torus_element_map_parameters(mesh,
+                                                  metric_terms,
+                                                  aux_type)
 
     # Exact element-local torus map X(ξ₁, ξ₂) using p4est tree/quadrant metadata
-    surface_map_for_element = let theta_origin = theta_origin,
-                                  phi_origin = phi_origin,
-                                  dtheta_dxi1 = dtheta_dxi1,
-                                  dphi_dxi2 = dphi_dxi2,
-                                  major_radius = major_radius,
-                                  minor_radius = minor_radius,
-                                  one_aux = one_aux
+    surface_map_for_element = let theta_origin = theta_origin, phi_origin = phi_origin,
+        dtheta_dxi1 = dtheta_dxi1, dphi_dxi2 = dphi_dxi2, major_radius = major_radius,
+        minor_radius = minor_radius, one_aux = one_aux
+
         element -> begin
             theta0 = theta_origin[element]
             phi0 = phi_origin[element]

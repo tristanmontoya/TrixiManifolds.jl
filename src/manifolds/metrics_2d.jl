@@ -2,7 +2,8 @@
 
 # Each p4est level halves both reference directions, so the quadrant scale is a scalar
 # 2⁻ˡᵉᵛᵉˡ
-@inline function p4est_quadrant_reference_scale(level::Integer, ::Type{RealT}) where {RealT <: Real}
+@inline function p4est_quadrant_reference_scale(level::Integer,
+                                                ::Type{RealT}) where {RealT <: Real}
     return ldexp(one(RealT), -Int(level))
 end
 
@@ -116,8 +117,8 @@ function init_auxiliary_node_variables_from_map!(auxiliary_variables,
             aux_node_vars[20, i, j, element] = isnothing(bottom_topography) ?
                                                zero_aux : bottom_topography(x_node)
             aux_node_vars[21:26, i, j, element] = calc_christoffel_symbols_covariant(dGdxi1,
-                                                                                       dGdxi2,
-                                                                                       Gcon)
+                                                                                     dGdxi2,
+                                                                                     Gcon)
 
             # Fill any remaining auxiliary variables with zeros 
             if n_aux > 26

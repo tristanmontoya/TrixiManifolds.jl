@@ -7,18 +7,17 @@
 
 ## Included features
 <p align="center">
-  <img src="examples/output/torus_plot_full_t4_20fps.gif" alt="Torus advection animation" width="49%" />
+  <img src="examples/output/wave_torus/wave_torus_plot.gif" alt="Torus wave animation" width="49%" />
   <img src="examples/output/sphere_plot_full_t4_20fps.gif" alt="Cubed-sphere advection animation" width="49%" />
 </p>
 
 - Torus manifold support: custom periodic torus mesh construction and covariant metric-term
-  initialization, demonstrated in
-  `examples/elixir_advection_torus.jl` (conservative form) and
-  `examples/elixir_advection_torus_nonconservative.jl` (nonconservative form).
+  initialization, demonstrated in `examples/elixir_wave_torus.jl`, using state
+  `(p, u^1, u^2)` and a mixed conservative/nonconservative linear form.
 - Sphere support included from [TrixiAtmo.jl](https://github.com/trixi-framework/TrixiAtmo.jl): covariant advection on a cubed sphere demonstrated in `examples/elixir_advection_cubed_sphere.jl`.
 - Generic covariant linear system model `CovariantLinearSystem2D`, supporting
   conservative `A` terms and optional nonconservative `B` terms, used by the
-  advection examples as a scalar `1x1` system with divergence-free velocity fields.
+  included torus and sphere examples.
 
 ## Installation
 First, make sure you have [Julia](https://julialang.org/downloads/) installed (the code was tested with Julia v1.12). Then, assuming you're on Linux or MacOS, run the following commands:
@@ -33,36 +32,33 @@ julia --project=. -e 'using Pkg; Pkg.add(["Trixi", "TrixiAtmo", "OrdinaryDiffEq"
 ```
 
 ## Basic usage
-From the `run` directory, start Julia with `julia --project=.` and run one of the manifold advection examples. Sphere support is included out of the box:
+From the `run` directory, start Julia with `julia --project=.` and run one of the manifold examples:
 
 ```julia
 julia> using Trixi
+julia> trixi_include("../examples/elixir_wave_torus.jl")
+```
+
+or
+
+```julia
 julia> trixi_include("../examples/elixir_advection_cubed_sphere.jl")
 ```
 
-or
-
-```julia
-julia> trixi_include("../examples/elixir_advection_torus.jl")
-```
-
-or
-
-```julia
-julia> trixi_include("../examples/elixir_advection_torus_nonconservative.jl")
-```
-
-These examples are configured for `T = 4` with output interval `0.02`. They already convert output to `.vtu` at the end. If needed, you can run:
+`elixir_wave_torus.jl` runs to `T = 10` and `elixir_advection_cubed_sphere.jl` runs to
+`T = 4`; both use output interval `0.02`. They already convert output to `.vtu` at the end.
+If needed, you can run:
 
 ```julia
 julia> using Trixi2Vtk
-julia> trixi2vtk("../examples/output/advection_torus/solution_*.h5",
-                 output_directory="../examples/output/advection_torus")
-julia> trixi2vtk("../examples/output/advection_torus_nonconservative/solution_*.h5",
-                 output_directory="../examples/output/advection_torus_nonconservative")
+julia> trixi2vtk("../examples/output/wave_torus/solution_*.h5",
+                 output_directory="../examples/output/wave_torus")
 julia> trixi2vtk("../examples/output/advection_cubed_sphere/solution_*.h5",
                  output_directory="../examples/output/advection_cubed_sphere")
 ```
+
+For `examples/elixir_wave_torus.jl`, output variables are stored with generic names:
+`u1 -> p`, `u2 -> u^1`, `u3 -> u^2`.
 
 ## Animations
 Use the script in `scripts/` to render animations directly from terminal. It auto-reexecutes via `pvbatch` when run with normal Python.
@@ -73,19 +69,38 @@ Prerequisites:
 - `ffmpeg` on `PATH` for movie output (`.mp4`, `.avi`, etc.); PNG plot output does not require `ffmpeg`
 - VTU files in `examples/output/` (for example from `trixi2vtk("examples/output/solution_*.h5", output_directory="examples/output/")`)
 
-```bash
-python scripts/render_paraview_animation.py \
-  --input "examples/output/advection_torus/solution_*.vtu" \
-  --output examples/output/advection_torus/animation.mp4 \
-  --field u1
+### Generate `wave_torus` GIF
+
+Run the wave example to produce `examples/output/wave_torus/solution_*.vtu`:
+
+```julia
+julia> using Trixi
+julia> trixi_include("../examples/elixir_wave_torus.jl")
 ```
+
+Render an `.mp4` with a colour scale centred at zero:
 
 ```bash
 python scripts/render_paraview_animation.py \
-  --input "examples/output/advection_torus_nonconservative/solution_*.vtu" \
-  --output examples/output/advection_torus_nonconservative/animation.mp4 \
-  --field u1
+  --input "examples/output/wave_torus/solution_*.vtu" \
+  --output examples/output/wave_torus/wave_torus_plot.mp4 \
+  --field u1 \
+  --color-min -0.4 \
+  --color-max 0.4
 ```
+
+Convert the `.mp4` to `.gif`:
+
+```bash
+ffmpeg -y -i examples/output/wave_torus/wave_torus_plot.mp4 \
+  -vf "fps=20,scale=960:-1:flags=lanczos,palettegen" /tmp/wave_torus_palette.png
+ffmpeg -y -i examples/output/wave_torus/wave_torus_plot.mp4 \
+  -i /tmp/wave_torus_palette.png \
+  -lavfi "fps=20,scale=960:-1:flags=lanczos[x];[x][1:v]paletteuse" \
+  examples/output/wave_torus/wave_torus_plot.gif
+```
+
+### Other example animations
 
 ```bash
 python scripts/render_paraview_animation.py \
@@ -98,7 +113,7 @@ python scripts/render_paraview_animation.py \
 To output `.png` files, simply replace `animation.mp4` with a pattern like `plot_*.png`, where `*` will be replaced with the frame number.
 
 ### Example animations
-- Torus (`T = 4`, 20 fps): [examples/output/torus_plot_full_t4_20fps.mp4](examples/output/torus_plot_full_t4_20fps.mp4)
+- Torus wave (`T = 10`, 20 fps): [examples/output/wave_torus/wave_torus_plot.mp4](examples/output/wave_torus/wave_torus_plot.mp4)
 - Cubed sphere (`T = 4`, 20 fps): [examples/output/sphere_plot_full_t4_20fps.mp4](examples/output/sphere_plot_full_t4_20fps.mp4)
 
 
