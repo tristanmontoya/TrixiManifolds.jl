@@ -77,7 +77,7 @@ function init_auxiliary_node_variables_from_map!(auxiliary_variables,
 
     # The minimum number of auxiliary variables for 2D covariant equations is 26, but 
     # more can be allocated for user-defined purposes (e.g. extra physics variables)
-    @assert n_aux >= 26 
+    @assert n_aux >= 26
 
     # Auxiliary variable layout for covariant equations:
     # 1:6 covariant basis, 7:12 contravariant basis, 13 √det(G_cov),

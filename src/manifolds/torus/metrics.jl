@@ -55,10 +55,10 @@ function calc_torus_element_map_parameters(mesh::P4estMesh{2, 3},
     phi_origin = Vector{RealT}(undef, nelements)
     dtheta_dxi1 = Vector{RealT}(undef, nelements)
     dphi_dxi2 = Vector{RealT}(undef, nelements)
-    
+
     # Compute constant scaling factor of 2^(-P4EST_MAXLEVEL)
     inv_p4est_root_len = ldexp(one(RealT), -Trixi.P4EST_MAXLEVEL)
-    
+
     # Loop over p4est trees
     trees = Trixi.unsafe_wrap_sc(Trixi.p4est_tree_t, mesh.p4est.trees)
     for tree_id in eachindex(trees)
@@ -83,10 +83,12 @@ function calc_torus_element_map_parameters(mesh::P4estMesh{2, 3},
             phi_origin[element] = convert(RealT, 2pi) *
                                   ((k_phi - 1) + quad.y * inv_p4est_root_len) /
                                   metric_terms.trees_per_minor_angle
-            
+
             # Jacobian is therefore constant on each element        
-            dtheta_dxi1[element] = convert(RealT, pi) * scale / metric_terms.trees_per_major_angle
-            dphi_dxi2[element] = convert(RealT, pi) * scale / metric_terms.trees_per_minor_angle
+            dtheta_dxi1[element] = convert(RealT, pi) * scale /
+                                   metric_terms.trees_per_major_angle
+            dphi_dxi2[element] = convert(RealT, pi) * scale /
+                                 metric_terms.trees_per_minor_angle
         end
     end
 
