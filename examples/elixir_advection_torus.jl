@@ -28,7 +28,7 @@ const gaussian_height = 1.0
 const gaussian_width = 5.0
 
 # Initial condition for scalar Gaussian bump in global Cartesian coordinates
-@inline function initial_condition_transport(x, t, equations)
+@inline function initial_condition_transport(x, t, aux_vars, equations)
     bump_centre = torus2cartesian(theta_bump, phi_bump, major_radius, minor_radius)
     x1, x2, x3 = x
     dx1 = x1 - bump_centre[1]
@@ -70,12 +70,8 @@ mesh = P4estMeshTorus2D(cells_per_major_angle, cells_per_minor_angle,
                         major_radius, minor_radius,
                         polydeg = Trixi.polydeg(solver))
 
-# Transform initial condition to the internal conservative variables
-initial_condition_transformed = transform_initial_condition(initial_condition_transport,
-                                                            equations)
-
 # Set up semidiscretization and run window
-semi = SemidiscretizationHyperbolic(mesh, equations, initial_condition_transformed, solver,
+semi = SemidiscretizationHyperbolic(mesh, equations, initial_condition_transport, solver,
                                     boundary_conditions = boundary_condition_periodic,
                                     metric_terms = MetricTermsCovariantTorus(major_radius,
                                                                              minor_radius,

@@ -12,12 +12,33 @@
 </p>
 
 - Torus manifold support: custom periodic torus mesh construction and covariant metric-term
-  initialization, demonstrated in `examples/elixir_wave_torus.jl`, using state
-  `(p, u^1, u^2)` and a mixed conservative/nonconservative linear form.
-- Sphere support included from [TrixiAtmo.jl](https://github.com/trixi-framework/TrixiAtmo.jl): covariant advection on a cubed sphere demonstrated in `examples/elixir_advection_cubed_sphere.jl`.
+  initialization, demonstrated in `examples/elixir_wave_torus.jl` for the wave system
+  in mixed conservative/nonconservative form:
+  $$
+  \partial_t p
+  + \frac{1}{J}\partial_1\!\left(Jv^1\right)
+  + \frac{1}{J}\partial_2\!\left(Jv^2\right)=0,
+  $$
+  $$
+  \partial_t v^1 + c^2 G^{11}\partial_1 p + c^2 G^{12}\partial_2 p = 0,
+  $$
+  $$
+  \partial_t v^2 + c^2 G^{21}\partial_1 p + c^2 G^{22}\partial_2 p = 0,
+  $$
+  where $p$ is the pressure, $v^1$ and $v^2$ are the contravariant velocity components, $c$ is the wave speed, and $J = \sqrt{G_{ij}}$, where $G_{ij}$ and $G^{ij}$ denote the covariant and contravariant metric tensor components.
+- Sphere support included from [TrixiAtmo.jl](https://github.com/trixi-framework/TrixiAtmo.jl):
+  covariant advection on a cubed sphere demonstrated in
+`examples/elixir_advection_cubed_sphere.jl`, in conservative form:
+  $$
+  \partial_t \rho + \frac{1}{J}\partial_j(J\rho v^j) = 0,
+  $$
+  where $\rho$ is the scalar density. Note that this equation is also solved on the torus in `examples/elixir_advection_torus.jl`.
 - Generic covariant linear system model `CovariantLinearSystem2D`, supporting
-  conservative `A` terms and optional nonconservative `B` terms, used by the
-  included torus and sphere examples.
+  conservative ($\boldsymbol{A}$) terms and optional nonconservative ($\boldsymbol{B}$) terms via the shared form:
+  $$
+  \partial_t \boldsymbol{u} + \frac{1}{J}\partial_j(J\boldsymbol{A}^j \boldsymbol{u}) + \boldsymbol{B}^j\partial_j \boldsymbol{u} = 0,
+  $$
+  where $\boldsymbol{u}$ is the state vector, and the matrices $\boldsymbol{A}^j$ and $\boldsymbol{B}^j$ denote spatially varying fields.
 
 ## Installation
 First, make sure you have [Julia](https://julialang.org/downloads/) installed (the code was tested with Julia v1.12). Then, assuming you're on Linux or MacOS, run the following commands:

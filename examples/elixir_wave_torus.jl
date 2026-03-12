@@ -28,10 +28,6 @@ const save_interval = 0.02
 # Generic wave-speed parameter c and c² (Rognes benchmark uses c² = 1)
 const wave_speed_squared = 1.0
 
-# Reference-to-physical angular scaling factors α and β for each periodic direction
-const alpha = pi / cells_per_major_angle
-const beta = pi / cells_per_minor_angle
-
 # Initial condition evaluated at Cartesian node x = (x₁, x₂, x₃):
 # q = (p, u¹, u²), with torus angular components mapped to contravariant components
 @inline function initial_condition_wave(x, t, aux_vars, equations)
@@ -60,39 +56,36 @@ const beta = pi / cells_per_minor_angle
 end
 
 # Conservative coefficient matrices A¹ and A²
-# A¹[1,2] = 1/α, A²[1,3] = 1/β; all other entries are zero
+# A¹[1,2] = 1, A²[1,3] = 1; all other entries are zero
 @inline function conservative_coefficient_matrix(x, aux_vars, orientation::Integer,
                                                  equations)
     zero_aux = zero(eltype(aux_vars))
-    inv_alpha = inv(convert(eltype(aux_vars), alpha))
-    inv_beta = inv(convert(eltype(aux_vars), beta))
+    one_aux = one(eltype(aux_vars))
     if orientation == 1
         return SMatrix{3, 3}(zero_aux, zero_aux, zero_aux,
-                             inv_alpha, zero_aux, zero_aux,
+                             one_aux, zero_aux, zero_aux,
                              zero_aux, zero_aux, zero_aux)
     else
         return SMatrix{3, 3}(zero_aux, zero_aux, zero_aux,
                              zero_aux, zero_aux, zero_aux,
-                             inv_beta, zero_aux, zero_aux)
+                             one_aux, zero_aux, zero_aux)
     end
 end
 
 # Nonconservative matrices Bʲ for c² grad(p) in momentum equations:
-# Bʲ[2,1] = c²αG¹ʲ, Bʲ[3,1] = c²βG²ʲ
+# Bʲ[2,1] = c²G¹ʲ, Bʲ[3,1] = c²G²ʲ
 @inline function nonconservative_coefficient_matrix(x, aux_vars, orientation::Integer,
                                                     equations)
     zero_aux = zero(eltype(aux_vars))
     c2 = convert(eltype(aux_vars), wave_speed_squared)
-    alpha_aux = convert(eltype(aux_vars), alpha)
-    beta_aux = convert(eltype(aux_vars), beta)
     Gcon = TrixiAtmo.metric_contravariant(aux_vars, equations)
 
     if orientation == 1
-        b21 = c2 * alpha_aux * Gcon[1, 1]
-        b31 = c2 * beta_aux * Gcon[2, 1]
+        b21 = c2 * Gcon[1, 1]
+        b31 = c2 * Gcon[2, 1]
     else
-        b21 = c2 * alpha_aux * Gcon[1, 2]
-        b31 = c2 * beta_aux * Gcon[2, 2]
+        b21 = c2 * Gcon[1, 2]
+        b31 = c2 * Gcon[2, 2]
     end
 
     return SMatrix{3, 3}(zero_aux, b21, b31,
