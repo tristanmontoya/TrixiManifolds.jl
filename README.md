@@ -33,11 +33,11 @@
   where ρ is the scalar density. Note that this equation is also solved on the
   torus in `examples/elixir_advection_torus.jl`.
 - Generic covariant linear system model `CovariantLinearSystem2D`, supporting
-  conservative A terms and optional nonconservative B terms via the shared form:
+  conservative terms and optional nonconservative terms via the shared form:
 
-  ∂ₜu + (1/J)∂ⱼ(JAʲu) + Bʲ∂ⱼu = 0,
+  ∂ₜ**u** + (1/J)∂ⱼ(J**A**ʲ**u**) + **B**ʲ∂ⱼ**u** = 0,
 
-  where u is the state vector, and Aʲ and Bʲ are spatially varying matrix fields.
+  where **u** is the state vector, and **A**ʲ and **B**ʲ are spatially varying matrix fields.
 
 ## Installation
 First, make sure you have [Julia](https://julialang.org/downloads/) installed (the code was tested with Julia v1.12). Then, assuming you're on Linux or MacOS, run the following commands:
