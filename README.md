@@ -12,7 +12,7 @@
 </p>
 
 - Torus manifold support: custom periodic torus mesh construction and covariant metric-term
-  initialization, demonstrated in `examples/elixir_wave_torus.jl` for the wave system
+  initialization, demonstrated in `examples/elixir_wave_torus.jl` for the linear wave equation
   in mixed conservative/nonconservative form:
 
   ∂ₜp + (1/J)∂₁(Jv¹) + (1/J)∂₂(Jv²) = 0,
