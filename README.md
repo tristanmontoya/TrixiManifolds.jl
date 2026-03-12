@@ -1,5 +1,6 @@
 # TrixiManifolds.jl
 [![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/tristanmontoya/TrixiManifolds.jl/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tristanmontoya/TrixiManifolds.jl/actions/workflows/ci.yml)
 
 **Note: This repository is still in its alpha stage and anything might change at any time and without warning.**
 

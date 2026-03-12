@@ -150,6 +150,7 @@ end
     return J_ll * (B_ll * u_rr)
 end
 
+# If the B matrix is `Nothing`, then we have no nonconservative flux contribution
 @inline function Trixi.have_nonconservative_terms(::CovariantLinearSystem2D{<:Any,
                                                                             <:Any,
                                                                             <:Any,
@@ -157,10 +158,23 @@ end
     return Trixi.False()
 end
 
+# If the B matrix is not `Nothing`, then we have nonconservative terms
 @inline function Trixi.have_nonconservative_terms(::CovariantLinearSystem2D)
     return Trixi.True()
 end
 
+# Max wave speed for local Lax-Friedrichs dissipation uses matrix norms as an upper bound
+# on eigenvalues of A and B
+@inline function max_abs_speed_matrix_contribution(aux_vars_ll, aux_vars_rr,
+                                                   orientation::Integer,
+                                                   equations::CovariantLinearSystem2D,
+                                                   matrix_function)
+    matrix_ll = matrix_function(aux_vars_ll, orientation, equations)
+    matrix_rr = matrix_function(aux_vars_rr, orientation, equations)
+    return max(opnorm(matrix_ll, Inf), opnorm(matrix_rr, Inf))
+end
+
+# Version for no nonconservative terms returns zero speed contribution from B matrices
 @inline function max_abs_speed_nonconservative_contribution(aux_vars_ll, aux_vars_rr,
                                                             orientation::Integer,
                                                             equations::CovariantLinearSystem2D{<:Any,
@@ -170,20 +184,23 @@ end
     return zero(eltype(aux_vars_ll))
 end
 
+# Version for nonconservative terms computes speed contribution from B matrices
 @inline function max_abs_speed_nonconservative_contribution(aux_vars_ll, aux_vars_rr,
                                                             orientation::Integer,
                                                             equations::CovariantLinearSystem2D)
-    B_ll = B_matrix(aux_vars_ll, orientation, equations)
-    B_rr = B_matrix(aux_vars_rr, orientation, equations)
-    return max(opnorm(B_ll, Inf), opnorm(B_rr, Inf))
+    return max_abs_speed_matrix_contribution(aux_vars_ll, aux_vars_rr,
+                                             orientation,
+                                             equations,
+                                             B_matrix)
 end
 
 @inline function Trixi.max_abs_speed(u_ll, u_rr, aux_vars_ll, aux_vars_rr,
                                      orientation::Integer,
                                      equations::CovariantLinearSystem2D)
-    A_ll = A_matrix(aux_vars_ll, orientation, equations)
-    A_rr = A_matrix(aux_vars_rr, orientation, equations)
-    speed_A = max(opnorm(A_ll, Inf), opnorm(A_rr, Inf))
+    speed_A = max_abs_speed_matrix_contribution(aux_vars_ll, aux_vars_rr,
+                                                orientation,
+                                                equations,
+                                                A_matrix)
     speed_B = max_abs_speed_nonconservative_contribution(aux_vars_ll, aux_vars_rr,
                                                          orientation, equations)
     return speed_A + speed_B
@@ -213,6 +230,8 @@ end
 # Auxiliary-variable count and names
 # -----------------------------------------------------------------------------
 
+# Auxiliary variable count includes A/B matrix entries in addition to standard covariant
+# geometry variables
 @inline function TrixiAtmo.n_aux_node_vars(::CovariantLinearSystem2D{Nvars,
                                                                      <:Any,
                                                                      <:Any,
@@ -225,6 +244,8 @@ end
     return N_AUX_METRIC_TERMS_COVARIANT_2D + 4 * Nvars * Nvars
 end
 
+# Generate auxiliary variable names for A and B matrix entries in the format "A[orientation]
+# [row,column]" and "B[orientation][row,column]"
 @inline function coefficient_matrix_aux_names(matrix_label::String,
                                               ::CovariantLinearSystem2D{Nvars}) where {Nvars}
     return ntuple(index -> begin
@@ -237,6 +258,8 @@ end
                   2 * Nvars * Nvars)
 end
 
+# Auxiliary variable names include standard covariant geometry variables plus A and 
+# optional B matrix entries
 @inline function TrixiAtmo.auxvarnames(equations::CovariantLinearSystem2D{<:Any,
                                                                           <:Any,
                                                                           <:Any,
@@ -245,7 +268,6 @@ end
     A_names = coefficient_matrix_aux_names("A", equations)
     return (base_names..., A_names...)
 end
-
 @inline function TrixiAtmo.auxvarnames(equations::CovariantLinearSystem2D)
     base_names = TrixiAtmo.auxvarnames(TrixiAtmo.CovariantLinearAdvectionEquation2D())
     A_names = coefficient_matrix_aux_names("A", equations)

@@ -1,0 +1,12 @@
+[deps]
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Trixi = "a7f1ee26-1774-49b1-8366-f1abc58fbfcb"
+TrixiAtmo = "c9ed1054-d170-44a9-8ee2-d5566f5d1389"
+TrixiTest = "0a316866-cbd0-4425-8bcb-08103b2c1f26"
+
+[compat]
+OrdinaryDiffEq = "6"
+Test = "1"
+Trixi = "0.13, 0.14, 0.15"
+TrixiTest = "0.1.3"

@@ -55,42 +55,38 @@ function calc_torus_element_map_parameters(mesh::P4estMesh{2, 3},
     phi_origin = Vector{RealT}(undef, nelements)
     dtheta_dxi1 = Vector{RealT}(undef, nelements)
     dphi_dxi2 = Vector{RealT}(undef, nelements)
-
-    n_trees_expected = metric_terms.trees_per_major_angle *
-                       metric_terms.trees_per_minor_angle
-    @assert Trixi.ntrees(mesh) == n_trees_expected
-
-    two_pi = convert(RealT, 2pi)
-    pi_rt = convert(RealT, pi)
-    inv_p4est_root_len = inv(convert(RealT, 1 << Trixi.P4EST_MAXLEVEL))
-
+    
+    # Compute constant scaling factor of 2^(-P4EST_MAXLEVEL)
+    inv_p4est_root_len = ldexp(one(RealT), -Trixi.P4EST_MAXLEVEL)
+    
+    # Loop over p4est trees
     trees = Trixi.unsafe_wrap_sc(Trixi.p4est_tree_t, mesh.p4est.trees)
     for tree_id in eachindex(trees)
+        # Map p4est tree id to global torus indices (k_θ, k_φ) of the tree origin
         k_theta, k_phi = torus_tree_indices(tree_id, metric_terms.trees_per_major_angle)
-        @assert k_phi <= metric_terms.trees_per_minor_angle
 
+        # Loop over quadrants in this tree to compute element-local torus map parameters
         tree = trees[tree_id]
         quadrants = Trixi.unsafe_wrap_sc(Trixi.p4est_quadrant_t, tree.quadrants)
         tree_offset = Int(tree.quadrants_offset)
-
         for local_quadrant_id in eachindex(quadrants)
             quad = quadrants[local_quadrant_id]
             element = tree_offset + local_quadrant_id
 
+            # Scale according to quadrant level by factor 2^(-level)
             scale = p4est_quadrant_reference_scale(quad.level, RealT)
 
             # Global torus angles on this element are affine in local reference coordinates:
-            # θ = θ_origin + (dθ/dξ₁) ⋅ (ξ₁ + 1)
-            # φ = φ_origin + (dφ/dξ₂) ⋅ (ξ₂ + 1)
-            # `quad.x` and `quad.y` are p4est integer coordinates in [0, 2 to the power `P4EST_MAXLEVEL`)
-            theta_origin[element] = two_pi *
+            theta_origin[element] = convert(RealT, 2pi) *
                                     ((k_theta - 1) + quad.x * inv_p4est_root_len) /
                                     metric_terms.trees_per_major_angle
-            phi_origin[element] = two_pi *
+            phi_origin[element] = convert(RealT, 2pi) *
                                   ((k_phi - 1) + quad.y * inv_p4est_root_len) /
                                   metric_terms.trees_per_minor_angle
-            dtheta_dxi1[element] = pi_rt * scale / metric_terms.trees_per_major_angle
-            dphi_dxi2[element] = pi_rt * scale / metric_terms.trees_per_minor_angle
+            
+            # Jacobian is therefore constant on each element        
+            dtheta_dxi1[element] = convert(RealT, pi) * scale / metric_terms.trees_per_major_angle
+            dphi_dxi2[element] = convert(RealT, pi) * scale / metric_terms.trees_per_minor_angle
         end
     end
 
@@ -108,20 +104,21 @@ function TrixiAtmo.init_auxiliary_node_variables!(auxiliary_variables,
                                                   bottom_topography)
     @assert equations.global_coordinate_system isa TrixiAtmo.GlobalCartesianCoordinates
 
-    aux_type = eltype(auxiliary_variables.aux_node_vars)
-    one_aux = one(aux_type)
+    RealT = eltype(auxiliary_variables.aux_node_vars)
+    one_aux = one(RealT)
 
-    major_radius = convert(aux_type, metric_terms.major_radius)
-    minor_radius = convert(aux_type, metric_terms.minor_radius)
-    @assert major_radius > zero(aux_type)
-    @assert minor_radius > zero(aux_type)
+    major_radius = convert(RealT, metric_terms.major_radius)
+    minor_radius = convert(RealT, metric_terms.minor_radius)
 
+    # Radius must be positive to avoid singularities in the torus map
+    @assert major_radius > zero(RealT)
+    @assert minor_radius > zero(RealT)
+
+    # Get parameters of the element-local torus map X(ξ₁, ξ₂)
     theta_origin, phi_origin, dtheta_dxi1,
-    dphi_dxi2 = calc_torus_element_map_parameters(mesh,
-                                                  metric_terms,
-                                                  aux_type)
+    dphi_dxi2 = calc_torus_element_map_parameters(mesh, metric_terms, RealT)
 
-    # Exact element-local torus map X(ξ₁, ξ₂) using p4est tree/quadrant metadata
+    # Define exact element-local torus map X(ξ₁, ξ₂) using p4est tree/quadrant metadata
     surface_map_for_element = let theta_origin = theta_origin, phi_origin = phi_origin,
         dtheta_dxi1 = dtheta_dxi1, dphi_dxi2 = dphi_dxi2, major_radius = major_radius,
         minor_radius = minor_radius, one_aux = one_aux
@@ -132,6 +129,8 @@ function TrixiAtmo.init_auxiliary_node_variables!(auxiliary_variables,
             dtheta = dtheta_dxi1[element]
             dphi = dphi_dxi2[element]
 
+            # θ = θ_origin + (dθ/dξ₁) ⋅ (ξ₁ + 1)
+            # φ = φ_origin + (dφ/dξ₂) ⋅ (ξ₂ + 1)
             return (xi1, xi2) -> begin
                 theta = theta0 + dtheta * (xi1 + one_aux)
                 phi = phi0 + dphi * (xi2 + one_aux)

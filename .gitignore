@@ -24,6 +24,7 @@ JuliaLocalPreferences.toml
 # Project-generated data
 /run/
 /out/
+/test/out/
 examples/output/*/**
 !examples/output/*/**/*.gif
 !examples/output/*/**/*.mp4

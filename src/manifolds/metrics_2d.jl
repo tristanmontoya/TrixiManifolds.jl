@@ -1,7 +1,6 @@
 # Shared helpers for metric computations on 2D manifolds embedded in 3D
 
 # Each p4est level halves both reference directions, so the quadrant scale is a scalar
-# 2⁻ˡᵉᵛᵉˡ
 @inline function p4est_quadrant_reference_scale(level::Integer,
                                                 ::Type{RealT}) where {RealT <: Real}
     return ldexp(one(RealT), -Int(level))
@@ -75,7 +74,10 @@ function init_auxiliary_node_variables_from_map!(auxiliary_variables,
 
     zero_aux = zero(eltype(aux_node_vars))
     n_aux = TrixiAtmo.n_aux_node_vars(equations)
-    @assert n_aux >= 26
+
+    # The minimum number of auxiliary variables for 2D covariant equations is 26, but 
+    # more can be allocated for user-defined purposes (e.g. extra physics variables)
+    @assert n_aux >= 26 
 
     # Auxiliary variable layout for covariant equations:
     # 1:6 covariant basis, 7:12 contravariant basis, 13 √det(G_cov),
@@ -113,14 +115,12 @@ function init_auxiliary_node_variables_from_map!(auxiliary_variables,
                                                           Gcov[2, 2])
             aux_node_vars[17:19, i, j, element] = SVector(Gcon[1, 1], Gcon[1, 2],
                                                           Gcon[2, 2])
-
             aux_node_vars[20, i, j, element] = isnothing(bottom_topography) ?
                                                zero_aux : bottom_topography(x_node)
             aux_node_vars[21:26, i, j, element] = calc_christoffel_symbols_covariant(dGdxi1,
                                                                                      dGdxi2,
                                                                                      Gcon)
-
-            # Fill any remaining auxiliary variables with zeros 
+            # Fill any remaining auxiliary variables with zeros
             if n_aux > 26
                 aux_node_vars[27:n_aux, i, j, element] .= zero_aux
             end
