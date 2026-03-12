@@ -15,38 +15,28 @@
   initialization, demonstrated in `examples/elixir_wave_torus.jl` for the wave system
   in mixed conservative/nonconservative form:
 
-  ```math
-  \partial_t p
-  + \frac{1}{J}\partial_1\!\left(Jv^1\right)
-  + \frac{1}{J}\partial_2\!\left(Jv^2\right)=0,
-  ```
+  ∂ₜp + (1/J)∂₁(Jv¹) + (1/J)∂₂(Jv²) = 0,
 
-  ```math
-  \partial_t v^1 + c^2 G^{11}\partial_1 p + c^2 G^{12}\partial_2 p = 0,
-  ```
+  ∂ₜv¹ + c²G¹¹∂₁p + c²G¹²∂₂p = 0,
 
-  ```math
-  \partial_t v^2 + c^2 G^{21}\partial_1 p + c^2 G^{22}\partial_2 p = 0,
-  ```
+  ∂ₜv² + c²G²¹∂₁p + c²G²²∂₂p = 0.
 
-  where $p$ is the pressure, $v^1$ and $v^2$ are the contravariant velocity components, $c$ is the wave speed, and $J = \sqrt{G_{ij}}$, where $G_{ij}$ and $G^{ij}$ denote the covariant and contravariant metric tensor components.
+  where p is the pressure, v¹ and v² are contravariant velocity components, c is
+  the wave speed, and J = √det(G), where G is the metric tensor with contravariant components Gⁱʲ.
 - Sphere support included from [TrixiAtmo.jl](https://github.com/trixi-framework/TrixiAtmo.jl):
   covariant advection on a cubed sphere demonstrated in
   `examples/elixir_advection_cubed_sphere.jl`, in conservative form:
 
-  ```math
-  \partial_t \rho + \frac{1}{J}\partial_j(J\rho v^j) = 0,
-  ```
+  ∂ₜρ + (1/J)∂ⱼ(Jρvʲ) = 0,
 
-  where $\rho$ is the scalar density. Note that this equation is also solved on the torus in `examples/elixir_advection_torus.jl`.
+  where ρ is the scalar density. Note that this equation is also solved on the
+  torus in `examples/elixir_advection_torus.jl`.
 - Generic covariant linear system model `CovariantLinearSystem2D`, supporting
-  conservative ($\boldsymbol{A}$) terms and optional nonconservative ($\boldsymbol{B}$) terms via the shared form:
+  conservative A terms and optional nonconservative B terms via the shared form:
 
-  ```math
-  \partial_t \boldsymbol{u} + \frac{1}{J}\partial_j(J\boldsymbol{A}^j \boldsymbol{u}) + \boldsymbol{B}^j\partial_j \boldsymbol{u} = 0,
-  ```
+  ∂ₜu + (1/J)∂ⱼ(JAʲu) + Bʲ∂ⱼu = 0,
 
-  where $\boldsymbol{u}$ is the state vector, and the matrices $\boldsymbol{A}^j$ and $\boldsymbol{B}^j$ denote spatially varying fields.
+  where u is the state vector, and Aʲ and Bʲ are spatially varying matrix fields.
 
 ## Installation
 First, make sure you have [Julia](https://julialang.org/downloads/) installed (the code was tested with Julia v1.12). Then, assuming you're on Linux or MacOS, run the following commands:
@@ -98,7 +88,7 @@ Prerequisites:
 - `ffmpeg` on `PATH` for movie output (`.mp4`, `.avi`, etc.); PNG plot output does not require `ffmpeg`
 - VTU files in `examples/output/` (for example from `trixi2vtk("examples/output/solution_*.h5", output_directory="examples/output/")`)
 
-### Generate `wave_torus` GIF
+### Generate `wave_torus` video
 
 Run the wave example to produce `examples/output/wave_torus/solution_*.vtu`:
 
@@ -116,27 +106,6 @@ python scripts/render_paraview_animation.py \
   --field u1 \
   --color-min -0.4 \
   --color-max 0.4
-```
-
-Convert the `.mp4` to `.gif`:
-
-```bash
-ffmpeg -y -i examples/output/wave_torus/wave_torus_plot.mp4 \
-  -vf "fps=20,scale=960:-1:flags=lanczos,palettegen" /tmp/wave_torus_palette.png
-ffmpeg -y -i examples/output/wave_torus/wave_torus_plot.mp4 \
-  -i /tmp/wave_torus_palette.png \
-  -lavfi "fps=20,scale=960:-1:flags=lanczos[x];[x][1:v]paletteuse" \
-  examples/output/wave_torus/wave_torus_plot.gif
-```
-
-### Other example animations
-
-```bash
-python scripts/render_paraview_animation.py \
-  --input "examples/output/advection_cubed_sphere/solution_*.vtu" \
-  --output examples/output/advection_cubed_sphere/animation.mp4 \
-  --field u1 \
-  --camera isometric
 ```
 
 To output `.png` files, simply replace `animation.mp4` with a pattern like `plot_*.png`, where `*` will be replaced with the frame number.
