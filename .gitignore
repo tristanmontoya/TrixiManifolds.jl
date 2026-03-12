@@ -40,6 +40,7 @@ __pycache__/
 *.swp
 *~
 
-# Markdown policy: ignore markdown files except the root README
+# Markdown policy: ignore markdown except for specific ones
 *.md
 !README.md
+!LICENSE.md
