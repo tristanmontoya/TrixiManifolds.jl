@@ -37,7 +37,7 @@
 
   ∂ₜ**u** + (1/J)∂ⱼ(J**A**ʲ**u**) + **B**ʲ∂ⱼ**u** = 0,
 
-  where **u** is the state vector, and **A**ʲ and **B**ʲ are spatially varying matrix fields.
+  where **u** is the state vector, and **A**ʲ and **B**ʲ are spatially varying matrix fields. This is used to implement the wave and advection equations described above.
 
 ## Installation
 First, make sure you have [Julia](https://julialang.org/downloads/) installed (the code was tested with Julia v1.12). Then, assuming you're on Linux or MacOS, run the following commands:
