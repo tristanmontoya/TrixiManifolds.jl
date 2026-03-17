@@ -147,6 +147,11 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
         help="Camera preset (default: isometric).",
     )
     parser.add_argument(
+        "--hide-orientation-axes",
+        action="store_true",
+        help="Hide the XYZ orientation axes symbol (default: shown).",
+    )
+    parser.add_argument(
         "--color-min",
         type=float,
         default=0.0,
@@ -174,6 +179,14 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
         "--scalar-bar-title",
         default="",
         help="Override color-bar title text (default: no title).",
+    )
+    parser.add_argument(
+        "--legend-variable",
+        default=None,
+        help=(
+            "Override legend variable text (supports math mode, e.g. '$p$'). "
+            "Takes precedence over --scalar-bar-title."
+        ),
     )
     parser.add_argument(
         "--scalar-bar-component-title",
@@ -298,6 +311,7 @@ def main(argv: List[str]) -> None:
     view = CreateView("RenderView")
     view.ViewSize = [args.width, args.height]
     view.Background = [1.0, 1.0, 1.0]
+    maybe_setattr(view, "OrientationAxesVisibility", 0 if args.hide_orientation_axes else 1)
     SetActiveView(view)
     layout = CreateLayout("Layout")
     AssignViewToLayout(view=view, layout=layout, hint=0)
@@ -325,11 +339,14 @@ def main(argv: List[str]) -> None:
         maybe_setattr(lut, "NumberOfTableValues", args.bins)
 
     scalar_bar = GetScalarBar(lut, view)
-    if args.scalar_bar_title is not None:
-        scalar_bar.Title = args.scalar_bar_title
+    scalar_bar_title = args.legend_variable
+    if scalar_bar_title is None:
+        scalar_bar_title = args.scalar_bar_title
+    if scalar_bar_title is not None:
+        scalar_bar.Title = scalar_bar_title
     if args.scalar_bar_component_title is not None:
         scalar_bar.ComponentTitle = args.scalar_bar_component_title
-    elif args.scalar_bar_title is not None:
+    elif scalar_bar_title is not None:
         scalar_bar.ComponentTitle = ""
     # Default to one-decimal labels and show a midpoint marker on the scalar bar.
     for attr, value in (

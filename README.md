@@ -105,11 +105,25 @@ python scripts/render_paraview_animation.py \
   --input "examples/output/wave_torus/solution_*.vtu" \
   --output examples/output/wave_torus/wave_torus_plot.mp4 \
   --field u1 \
+  --legend-variable '$p$' \
+  --hide-orientation-axes \
   --color-min -0.4 \
   --color-max 0.4
 ```
 
-To output `.png` files, simply replace `animation.mp4` with a pattern like `plot_*.png`, where `*` will be replaced with the frame number.
+To output `.png` files, use a filename pattern like `plot_*.png`, where `*`
+will be replaced with the frame number:
+
+```bash
+python scripts/render_paraview_animation.py \
+  --input "examples/output/wave_torus/solution_*.vtu" \
+  --output "examples/output/wave_torus/wave_torus_frame_*.png" \
+  --field u1 \
+  --legend-variable '$p$' \
+  --hide-orientation-axes \
+  --color-min -0.4 \
+  --color-max 0.4
+```
 
 ### Example animations
 - Torus wave (`T = 10`, 20 fps): [examples/output/wave_torus/wave_torus_plot.mp4](examples/output/wave_torus/wave_torus_plot.mp4)

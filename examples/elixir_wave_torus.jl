@@ -36,10 +36,9 @@ const wave_speed_squared = 1.0
     theta = atan(x2, x1)
     phi = atan(x3, ring_radius - major_radius)
 
-    shape = (1 - 0.25 * cos(phi)) * cos(phi)
-    p = 0.1 * shape
+    p = (1 - 0.25 * cos(phi)) * cos(phi) + 0.25
     u_theta = 0.0
-    u_phi = -0.4 * shape
+    u_phi = -4.0 * p
 
     sin_theta, cos_theta = sincos(theta)
     sin_phi, cos_phi = sincos(phi)
