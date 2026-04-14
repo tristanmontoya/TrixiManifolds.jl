@@ -20,7 +20,7 @@
 
   ∂ₜv¹ + c²G¹¹∂₁p + c²G¹²∂₂p = 0,
 
-  ∂ₜv² + c²G²¹∂₁p + c²G²²∂₂p = 0.
+  ∂ₜv² + c²G²¹∂₁p + c²G²²∂₂p = 0,
 
   where p is the pressure, v¹ and v² are contravariant velocity components, c is
   the wave speed, and J = √det(G), where G is the metric tensor with contravariant components Gⁱʲ.
